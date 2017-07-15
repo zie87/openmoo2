@@ -42,9 +42,11 @@ class TestSystem(object):
         eq_(star.planets, {})
         ok_('foo' in star._systems)
 
-    def test_star_add_planet(self):
+    def test_star_add_delete_planet(self):
         star = StarSystem("boo", "orange")
         star.planets = "one"
+        eq_(star.planets, {1: 'one'})
+        del star.planets
         eq_(star.planets, {1: 'one'})
 
     @raises(Exception)
@@ -72,3 +74,42 @@ class TestSystem(object):
         eq_(star.administrator, "emperor")
         del star.administrator
         eq_(star.administrator, None)
+
+    def test_delete_name(self):
+        star = StarSystem("alfa", "blue")
+        eq_(star.name, 'alfa')
+        del star.name
+        eq_(star.name, 'alfa')
+
+    def test_supernova(self):
+        star = StarSystem("beta", "yellow")
+        star.administrator = "wolf"
+        star.planets = "asteroids"
+        star.planets = "planet"
+        star.planets = "planet"
+        star.planets = "giant"
+        eq_(star.planets, {1: 'asteroids', 2: 'planet', 3: 'planet', 4: 'giant'})
+        star.supernova()
+        eq_(star.administrator, None)
+        eq_(star.color, 'black')
+        eq_(star.planets, {x + 1: None for x in range(StarSystem.max_planets)})
+
+    def test_string_blackhole(self):
+        eq_(str(self.blackhole), "Black hole star system named: hole")
+
+    def test_string_planets(self):
+        star = StarSystem("gamma", "gelb")
+        star.planets = self.planetA
+        star.planets = self.planetD
+        star.planets = self.planetB
+        star.planets = self.planetC
+        eq_(str(star), 'gelb star named gamma with planets:\nOrbit 1:\n Planeta : asteroids\nOrbit 3:\n Planeta : giant\nOrbit 4:\n Planeta : planet\n')
+
+    def test_string_planets_administrator(self):
+        star = StarSystem("delta", "gelb")
+        star.planets = self.planetA
+        star.planets = self.planetD
+        star.planets = self.planetB
+        star.planets = self.planetC
+        star.administrator = "cpt. Kirk"
+        eq_(str(star),  'gelb star named delta with planets:\nOrbit 1:\n Planeta : asteroids\nOrbit 3:\n Planeta : giant\nOrbit 4:\n Planeta : planet\nStar system has assigned administrator: cpt. Kirk')
