@@ -1,96 +1,81 @@
 # vim: set ts=4 sw=4 et: coding=UTF-8
 
-from ..probabilities import determine_probability, get_50_50
-from .planet import Planet
-
 
 class StarSystem(object):
+    """ Object containing all information and getters for Star systems."""
 
-    """
-    Object containing all information and getters for Star systems.
-    """
+    _systems = set()
+    max_planets = 5
 
-    # Default system identifiers
-    # position on map
-    position_x = 0
-    position_y = 0
-    # color of system
-    color = None
-    # have some space beast
-    beast = None
-    # have some stranded leaders?
-    stranded_leader = None
-    # or even ships?
-    stranded_ship = None
-    # stable wormhole
-    stable_wormhole = None
-    # unstable wormhole
-    unstable_wormhole = None
-    # planets
-    planets = list()
+    def __init__(self, name, color):
+        """Initialize star system."""
+        self.color = color
+        self.__name = None
+        self.name = name
+        self.__planets = {}
+        self.__administrator = None
 
-    def __determine_unstable_wormhole(self):
-        """
-        Decide if the star system will be ok or just ugly
-        traffic blocking wormhole.
-        """
+    @property
+    def planets(self):
+        """Property handling dict of planets."""
+        if self.color == 'black':
+            return {x + 1: None for x in range(StarSystem.max_planets)}
+        return self.__planets
 
-        if determine_probability(5):
-            # Bad luck buddy
-            return True
-        return False
+    @planets.setter
+    def planets(self, planet):
+        if self.color == 'black':
+            raise Exception
+        counter = len(self.__planets)
+        if counter >= StarSystem.max_planets:
+            raise Exception
+        self.__planets[counter + 1] = planet
 
-    def __determine_planets(self):
-        """
-        Decide how many and what planets we will have.
-        """
-        planet_count = 0
-        planet = None
+    @planets.deleter
+    def planets(self):
+        pass
 
-        # We can have 0 - 5 planets
-        if determine_probability(4.6):
-            planet_count = get_50_50(0, 5)
-        elif determine_probability(27.2):
-            planet_count = get_50_50(1, 4)
-        else:
-            planet_count = get_50_50(2, 3)
+    @property
+    def administrator(self):
+        return self.__administrator
 
-        for i in range(0, planet_count):
-            planet = Planet()
-            planet.randomize(self.color)
-            self.planets.append(planet)
+    @administrator.setter
+    def administrator(self, admin):
+        if self.color == 'black':
+            raise Exception
+        self.__administrator = admin
 
-    def __determine_specialities(self):
-        """
-        Decide all various special factors for the star system.
-        """
+    @administrator.deleter
+    def administrator(self):
+        self.administrator = None
 
-        if determine_probability(5):
-            # FIXME: Set this to leader object
-            self.stranded_leader = True
-            return
-        if determine_probability(5):
-            # FIXME: Set this to some ship object
-            self.stranded_ship = True
-            return
-        if determine_probability(5):
-            # FIXME: Set this to some beast object
-            self.beast = True
+    @property
+    def name(self):
+        return self.__name
 
-    def __init__(self):
-        """
-        Generate new star system.
-        """
-        return
+    @name.setter
+    def name(self, name):
+        if name in StarSystem._systems:
+            raise Exception
+        if self.__name:
+            StarSystem._systems.discard(self.name)
+        StarSystem._systems.add(name)
+        self.__name = name
 
-    def randomize(self):
-        """
-        Radomize content of the star system for space creation.
-        """
-        # Here we do not create stable wormhole and position as
-        # those values must came from the whole universe layout
-        self.unstable_wormhole = self.__determine_unstable_wormhole()
-        # And anything worth setting values is only in non-wormhole setup
-        if not self.unstable_wormhole:
-            self.__determine_planets()
-            self.__determine_specialities()
+    @name.deleter
+    def name(self):
+        pass
+
+    def supernova(self):
+        self.color = 'black'
+        self.__administrator = None
+        self.__planets = {x + 1: None for x in range(StarSystem.max_planets)}
+
+    def __str__(self):
+        if self.color == 'black':
+            return "Black hole star system named: {!s}".format(self.name)
+        tmpstring = "{!s} star named {!s} with planets:\n".format(self.color, self.name)
+        tmpstring += "".join(["Orbit {!s}:\n {!s}\n".format(x, y) for x, y in self.planets.items() if y])
+        if self.administrator:
+            tmpstring += "Star system has assigned administrator: {!s}".format(self.administrator)
+        return tmpstring
